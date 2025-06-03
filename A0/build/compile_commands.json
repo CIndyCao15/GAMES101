@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/cs18/Desktop/Assignments/A0/build",
+  "command": "/usr/bin/x86_64-linux-gnu-g++-7   -I../EIGEN3_INCLUDE_DIR  -g   -o CMakeFiles/Transformation.dir/main.cpp.o -c /home/cs18/Desktop/Assignments/A0/main.cpp",
+  "file": "/home/cs18/Desktop/Assignments/A0/main.cpp"
+}
+]
