@@ -28,13 +28,13 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     // Then return it.
 
     Eigen::Matrix4f rotate;
-    float angle = rotation_angle / 180.0f * acosf(-1.0f);
+    float angle = rotation_angle / 180.0f * MY_PI;
     rotate << cos(angle), -sin(angle), 0, 0,
     sin(angle), cos(angle), 0, 0,
     0, 0, 1, 0,
     0, 0, 0, 1;
 
-    model = rotate* model;
+    model = rotate * model;
 
     return model;
 }
@@ -56,8 +56,8 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
 
     // Assume FOV is vertical FOV
 
-    float fov_rad = eye_fov / 180.0f * acosf(-1.0f);
-    float top_minus_bottom = 2 * atanf(fov_rad / 2) * zNear;
+    float fov_rad = eye_fov / 180.0f * MY_PI;
+    float top_minus_bottom = 2 * tanf(fov_rad / 2) * zNear;
     float right_minus_left = top_minus_bottom * aspect_ratio;
 
     ortho_scale << 2/right_minus_left, 0, 0, 0,
@@ -71,7 +71,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     0, 0, 1, 0;
 
     projection = ortho_scale * persp_2_ortho * projection;
-
+    
     return projection;
 }
 
@@ -130,6 +130,10 @@ int main(int argc, const char** argv)
 
         cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
+
+        // Flip the image because OpenCV coordinates start from the top-left corner
+        cv::flip(image, image, 0);
+
         cv::imshow("image", image);
         key = cv::waitKey(10);
 
