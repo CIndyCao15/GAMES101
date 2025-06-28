@@ -39,6 +39,35 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     return model;
 }
 
+Eigen::Matrix4f get_model_matrix_rodrigues_rotation(Eigen::Vector3f axis, float rotation_angle)
+{
+    Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
+
+    // TODO: Implement this function
+    // Create the model matrix for rotating the triangle around any given axis.
+    // Then return it.
+
+    axis.normalize();
+    float angle = rotation_angle / 180.0f * MY_PI;
+    float cos_angle = cos(angle);
+    float sin_angle = sin(angle);
+
+    Eigen::Matrix3f I, outer, cross, rodrigues;
+    I = Eigen::Matrix3f::Identity();
+    // Outer product
+    outer = axis * axis.transpose();
+    // Cross matrix
+    cross << 0, -axis.z(), axis.y(),
+             axis.z(), 0, -axis.x(),
+             -axis.y(), axis.x(), 0;
+    
+    rodrigues = cos_angle * I + (1 - cos_angle) * outer + sin_angle * cross;
+
+    model.block<3,3>(0,0) = rodrigues;
+
+    return model;
+}
+
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
                                       float zNear, float zFar)
 {
@@ -93,6 +122,9 @@ int main(int argc, const char** argv)
 
     Eigen::Vector3f eye_pos = {0, 0, 5};
 
+    // Rotating around this axis
+    Eigen::Vector3f rotation_axis = {0, 1, 0};
+
     std::vector<Eigen::Vector3f> pos{{2, 0, -2}, {0, 2, -2}, {-2, 0, -2}};
 
     std::vector<Eigen::Vector3i> ind{{0, 1, 2}};
@@ -106,7 +138,8 @@ int main(int argc, const char** argv)
     if (command_line) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
-        r.set_model(get_model_matrix(angle));
+        // r.set_model(get_model_matrix(angle));
+        r.set_model(get_model_matrix_rodrigues_rotation(rotation_axis, angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
@@ -122,7 +155,8 @@ int main(int argc, const char** argv)
     while (key != 27) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
-        r.set_model(get_model_matrix(angle));
+        // r.set_model(get_model_matrix(angle));
+        r.set_model(get_model_matrix_rodrigues_rotation(rotation_axis, angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
