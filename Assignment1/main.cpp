@@ -108,6 +108,7 @@ int main(int argc, const char** argv)
 {
     float angle = 0;
     bool command_line = false;
+    bool use_rodrigues = true;
     std::string filename = "output.png";
 
     if (argc >= 3) {
@@ -116,13 +117,16 @@ int main(int argc, const char** argv)
         if (argc == 4) {
             filename = std::string(argv[3]);
         }
+        if (argc ==5 && std::string(argv[4]) == "--z") {
+            use_rodrigues = false;
+        }
     }
 
     rst::rasterizer r(700, 700);
 
     Eigen::Vector3f eye_pos = {0, 0, 5};
 
-    // Rotating around this axis
+    // Rotating around any axis
     Eigen::Vector3f rotation_axis = {0, 1, 0};
 
     std::vector<Eigen::Vector3f> pos{{2, 0, -2}, {0, 2, -2}, {-2, 0, -2}};
@@ -138,14 +142,21 @@ int main(int argc, const char** argv)
     if (command_line) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
-        // r.set_model(get_model_matrix(angle));
-        r.set_model(get_model_matrix_rodrigues_rotation(rotation_axis, angle));
+        if (use_rodrigues) {
+            r.set_model(get_model_matrix_rodrigues_rotation(rotation_axis, angle));
+        } else {
+            r.set_model(get_model_matrix(angle));
+        }
+
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
         r.draw(pos_id, ind_id, rst::Primitive::Triangle);
         cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
+
+        // Flip the image because OpenCV coordinates start from the top-left corner
+        cv::flip(image, image, 0);
 
         cv::imwrite(filename, image);
 
@@ -155,8 +166,12 @@ int main(int argc, const char** argv)
     while (key != 27) {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
-        // r.set_model(get_model_matrix(angle));
-        r.set_model(get_model_matrix_rodrigues_rotation(rotation_axis, angle));
+        if (use_rodrigues) {
+            r.set_model(get_model_matrix_rodrigues_rotation(rotation_axis, angle));
+        } else {
+            r.set_model(get_model_matrix(angle));
+        }
+
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
@@ -168,6 +183,9 @@ int main(int argc, const char** argv)
         // Flip the image because OpenCV coordinates start from the top-left corner
         cv::flip(image, image, 0);
 
+        std::string text = use_rodrigues ? "Rodrigues Roatation" : "Z-Axis Rotation";
+        cv::putText(image, text, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255,255,255), 2);
+
         cv::imshow("image", image);
         key = cv::waitKey(10);
 
@@ -178,6 +196,11 @@ int main(int argc, const char** argv)
         }
         else if (key == 'd') {
             angle -= 10;
+        }
+        else if (key == 'm') {
+            use_rodrigues = !use_rodrigues;
+            std::cout << "[Mode Switch] Now using " << (use_rodrigues ? "Rodrigues rotation." : "Z-axis rotation.") << std::endl;
+            
         }
     }
 
