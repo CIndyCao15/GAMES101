@@ -33,6 +33,27 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
     // TODO: Copy-paste your implementation from the previous assignment.
     Eigen::Matrix4f projection;
 
+    Eigen::Matrix4f ortho_scale;
+    Eigen::Matrix4f persp_2_ortho;
+
+    // Assume FOV is vertical FOV
+
+    float fov_rad = eye_fov / 180.0f * MY_PI;
+    float top_minus_bottom = 2 * tanf(fov_rad / 2) * zNear;
+    float right_minus_left = top_minus_bottom * aspect_ratio;
+
+    ortho_scale << 2/right_minus_left, 0, 0, 0,
+    0, 2/top_minus_bottom, 0, 0,
+    0, 0, 2/(zNear-zFar), 0,
+    0, 0, 0, 1;
+
+    persp_2_ortho << zNear, 0, 0, 0,
+    0, zNear, 0, 0,
+    0, 0, zNear + zFar, - zNear * zFar,
+    0, 0, 1, 0;
+
+    projection = ortho_scale * persp_2_ortho * projection;
+    
     return projection;
 }
 
@@ -71,9 +92,9 @@ int main(int argc, const char** argv)
 
     std::vector<Eigen::Vector3f> cols
             {
-                    {217.0, 238.0, 185.0},
-                    {217.0, 238.0, 185.0},
-                    {217.0, 238.0, 185.0},
+                    {2.0, 238.0, 185.0},
+                    {217.0, 2.0, 185.0},
+                    {217.0, 238.0, 5.0},
                     {185.0, 217.0, 238.0},
                     {185.0, 217.0, 238.0},
                     {185.0, 217.0, 238.0}
