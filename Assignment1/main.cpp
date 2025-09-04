@@ -86,7 +86,7 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     // Assume FOV is vertical FOV
 
     float fov_rad = eye_fov / 180.0f * MY_PI;
-    float top_minus_bottom = 2 * tanf(fov_rad / 2) * zNear;
+    float top_minus_bottom = 2 * tanf(fov_rad / 2) * (-zNear); // zNear is negative
     float right_minus_left = top_minus_bottom * aspect_ratio;
 
     ortho_scale << 2/right_minus_left, 0, 0, 0,
@@ -149,14 +149,16 @@ int main(int argc, const char** argv)
         }
 
         r.set_view(get_view_matrix(eye_pos));
-        r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
+        r.set_projection(get_projection_matrix(45, 1, -0.1, -50));
 
         r.draw(pos_id, ind_id, rst::Primitive::Triangle);
         cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
 
         // Flip the image because OpenCV coordinates start from the top-left corner
-        cv::flip(image, image, 0);
+        // cv::flip(image, image, 0);
+        // NOTE: No need to flip, the issue was caused by inputing the wrong zNear and zFar (they should be negative)
+        // NOTE: SEE README.md
 
         cv::imwrite(filename, image);
 
@@ -173,7 +175,7 @@ int main(int argc, const char** argv)
         }
 
         r.set_view(get_view_matrix(eye_pos));
-        r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
+        r.set_projection(get_projection_matrix(45, 1, -0.1, -50));
 
         r.draw(pos_id, ind_id, rst::Primitive::Triangle);
 
@@ -181,7 +183,9 @@ int main(int argc, const char** argv)
         image.convertTo(image, CV_8UC3, 1.0f);
 
         // Flip the image because OpenCV coordinates start from the top-left corner
-        cv::flip(image, image, 0);
+        // cv::flip(image, image, 0);
+        // NOTE: No need to flip, the issue was caused by inputing the wrong zNear and zFar (they should be negative)
+        // NOTE: SEE README.md
 
         std::string text = use_rodrigues ? "Rodrigues Roatation" : "Z-Axis Rotation";
         cv::putText(image, text, cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255,255,255), 2);
